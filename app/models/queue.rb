@@ -1,21 +1,38 @@
+
+
 module Play
   # Queue is a queued listing of songs waiting to be played. It's a simple
   # playlist in iTunes, which Play manicures by maintaining [queue+1] songs and
   # pruning played songs (since histories are stashed in redis).
   class Queue
 
+    CREDS = {
+      "id" => Play.config.spotify_username,
+      "credentials" => {
+        "access_token" => Play.config.spotify_access_token,
+        "refresh_token" => Play.config.spotify_refresh_token,
+        "token" => Play.config.spotify_token}}
+    RSpotify::authenticate(Play.config.spotify_client_id,
+                           Play.config.spotify_client_secret)
+    USER = RSpotify::User.new(CREDS)
+
     # The name of the Playlist we'll stash in iTunes.
     #
     # Returns a String.
     def self.name
-      'iTunes DJ'
+      'Disco'
     end
 
     # The Playlist object that the Queue resides in.
     #
     # Returns an Appscript::Reference to the Playlist.
     def self.playlist
-      Player.app.playlists[name].get
+      #Player.app.playlists[name].get
+      USER.playlists.first
+    end
+
+    def self.tracks
+      playlist.tracks.group_by{|s| s.uri}
     end
 
     # Get the queue start offset for the iTunes DJ playlist.
@@ -33,7 +50,21 @@ module Play
     #
     # Returns Integer offset to queued songs.
     def self.playlist_offset
-      Player.app.current_track.index.get
+      if Play::Player.now_playing.nil?
+        -1
+      else
+        Play::Queue.playlist.tracks
+          .map
+          .with_index{|t, i| i if t.name ==  Play::Player.now_playing.name }
+          .select{|v| !v.nil?}
+          .first
+      end
+    end
+
+    def self.add_song_now(song)
+      track_id = song.id.split(':')[2]
+      track = RSpotify::Track.find(track_id)
+      playlist.add_tracks!([track], position: playlist_offset + 1)
     end
 
     # Public: Adds a song to the Queue.
@@ -42,7 +73,10 @@ module Play
     #
     # Returns a Boolean of whether the song was added.
     def self.add_song(song)
-      Player.app.add(song.record.location.get, :to => playlist.get)
+      #Player.app.add(song.record.location.get, :to => playlist.get)
+      track_id = song.id.split(':')[2]
+      track = RSpotify::Track.find(track_id)
+      playlist.add_tracks!([track])
     end
 
     # Public: Removes a song from the Queue.
@@ -60,7 +94,7 @@ module Play
     #
     # Returns who the fuck knows.
     def self.clear
-      Play::Queue.playlist.tracks.get.each { |record| record.delete }
+      playlist.remove_tracks!(playlist.tracks)
     end
 
     # Ensure that we're currently playing on the Play playlist. Don't let anyone
@@ -79,8 +113,8 @@ module Play
     #
     # Returns an Array of Songs.
     def self.songs
-      songs = playlist.tracks.get.map do |record|
-        Song.find(record.persistent_ID.get)
+      songs = playlist.tracks.map do |track|
+        Song.initialize_from_api(track)
       end
       songs.slice(playlist_offset, songs.length - playlist_offset)
     rescue Exception => e
@@ -92,9 +126,8 @@ module Play
     #
     # Returns a Boolean.
     def self.queued?(song)
-      Play::Queue.playlist.tracks[
-        Appscript.its.persistent_ID.eq(song.id)
-      ].get.size != 0
+      #Play::Queue.playlist.tracks[song.id].get.size != 0
+      !Play::Queue.tracks[song.id].nil?
     end
 
     # Returns the context of this Queue as JSON. This contains all of the songs

@@ -30,5 +30,5 @@ require 'models/airfoil'
 require 'app'
 require 'views/layout'
 
-REDIS_URL = 'redis://127.0.0.1'
+REDIS_URL = 'redis://127.0.0.1:16379'
 $redis = Redis.connect(:url => REDIS_URL, :thread_safe => true)

@@ -1,3 +1,5 @@
+require 'rspotify'
+
 module Play
   class Player
 
@@ -5,7 +7,7 @@ module Play
     #
     # Returns an Appscript instance of the music app.
     def self.app
-      Appscript.app('iTunes')
+      Appscript.app('Spotify')
     end
 
     # All songs in the library.
@@ -13,9 +15,22 @@ module Play
       app.playlists['Library'].get
     end
 
+    def self.spotify_playlist_url
+      ["https://open.spotify.com/user/",
+       Play.config.spotify_username,
+       "/playlist/",
+       Play.config.spotify_playlist].join("")
+    end
+
     # Play the music.
     def self.play
-      app.play
+      if now_playing.nil?
+        app.play_track(spotify_playlist_url)
+      elsif !Queue.queued?(now_playing)
+        app.play_track(spotify_playlist_url)
+      else
+        app.play
+      end
     end
 
     # Pause the music.
@@ -31,7 +46,7 @@ module Play
 
     # Maybe today is the day the music stopped.
     def self.stop
-      app.stop
+      pause if not paused?
     end
 
     # Play the next song.
@@ -98,7 +113,7 @@ module Play
     #
     # Returns a Song.
     def self.now_playing
-      Song.new(app.current_track.persistent_ID.get)
+      Song.initialize_from_record(app.current_track)
     rescue Appscript::CommandError
       nil
     end
@@ -114,21 +129,49 @@ module Play
     #
     # Returns an Array of matching Songs.
     def self.search(keyword)
+
+      # Song and artist match
+      song_title, song_artist = keyword.split(" by ")
+      if not song_artist.nil?
+        tracks = RSpotify::Track.search(song_title)
+        filtered_tracks = tracks.select do |t|
+          t.artists.first.name.downcase == song_artist.downcase and
+            t.name.downcase == song_title.downcase
+        end
+        if not filtered_tracks.empty?
+          return [Song.initialize_from_api(filtered_tracks.first)]
+        end
+      end
+
       # Exact Artist match.
-      songs = library.tracks[Appscript.its.artist.eq(keyword)].get
-      return songs.map{|record| Song.new(record.persistent_ID.get)} if songs.size != 0
+      artists = RSpotify::Artist.search(keyword)
+      if not artists.empty?
+        tracks = artists.first.top_tracks(:US)
+        if not tracks.empty?
+          return tracks.map{|t| Song.initialize_from_api(t)}
+        end
+      end
+
+      # Song match
+      tracks = RSpotify::Track.search(keyword)
+      if not tracks.empty?
+        return [Song.initialize_from_api(tracks.first)]
+      end
+
+      #songs = library.tracks[Appscript.its.artist.eq(keyword)].get 
+      #return songs.map{|record| Song.new(record.persistent_ID.get)} if songs.size != 0
 
       # Exact Album match.
-      songs = library.tracks[Appscript.its.album.eq(keyword)].get
-      return songs.map{|record| Song.new(record.persistent_ID.get)} if songs.size != 0
+      #songs = library.tracks[Appscript.its.album.eq(keyword)].get
+      #return songs.map{|record| Song.new(record.persistent_ID.get)} if songs.size != 0
 
       # Exact Song match.
-      songs = library.tracks[Appscript.its.name.eq(keyword)].get
-      return songs.map{|record| Song.new(record.persistent_ID.get)} if songs.size != 0
+      #songs = library.tracks[Appscript.its.name.eq(keyword)].get
+      #return songs.map{|record| Song.new(record.persistent_ID.get)} if songs.size != 0
 
       # Fuzzy Song match.
-      songs = library.tracks[Appscript.its.name.contains(keyword)].get
-      songs.map{|record| Song.new(record.persistent_ID.get)}
+      #songs = library.tracks[Appscript.its.name.contains(keyword)].get
+      #songs.map{|record| Song.new(record.persistent_ID.get)}
     end
 
   end

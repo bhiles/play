@@ -45,6 +45,28 @@ module Play
     post "/freeform" do
       subject = params[:subject]
 
+      if subject.end_with?(" right now")
+        subj = subject.split(" right now").first
+        songs = Player.search(subj)
+        if songs.size > 0
+          song = songs.first
+          Queue.add_song_now(song)
+          History.add(song,current_user)
+          sleep 2
+          Player.play_next
+          return songs_as_json([song],current_user)
+        end
+      end
+
+      songs = Player.search(subject)
+      if songs.size > 0
+        songs.each do |song|
+          Queue.add_song(song)
+          History.add(song,current_user)
+        end
+        return songs_as_json(songs,current_user)
+      end
+
       # Do we have an Artist match?
       songs = Artist.new(subject).songs
       if songs.size > 0

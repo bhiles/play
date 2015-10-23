@@ -1,3 +1,5 @@
+require 'yaml'
+
 # Sets Play up to be used by its friendly friends.
 module Play
 
@@ -15,7 +17,14 @@ module Play
       :pusher_app_id => yaml['pusher_app_id'],
       :pusher_key    => yaml['pusher_key'],
       :pusher_secret => yaml['pusher_secret'],
-      :auth_token    => yaml['auth_token']
+      :auth_token    => yaml['auth_token'],
+      :spotify_username => yaml['spotify_username'],
+      :spotify_playlist => yaml['spotify_playlist'],
+      :spotify_access_token => yaml['spotify_access_token'],
+      :spotify_refresh_token => yaml['spotify_refresh_token'],
+      :spotify_token => yaml['spotify_token'],
+      :spotify_client_id => yaml['spotify_client_id'],
+      :spotify_client_secret => yaml['spotify_client_secret']
   end
 
 private

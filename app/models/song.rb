@@ -24,7 +24,7 @@ module Play
 
     # The last time a song was played
     attr_accessor :last_played
-    
+
     # Duration in seconds, including fractions
     attr_accessor :duration
 
@@ -59,11 +59,19 @@ module Play
     #
     # Returns a new Song instance.
     def self.initialize_from_record(record)
-      new :id     => record.persistent_ID.get,
+      new :id     => record.id_.get,
           :name   => record.name.get,
           :artist => record.artist.get,
           :album  => record.album.get,
           :duration => record.duration.get
+    end
+
+    def self.initialize_from_api(response)
+      new :id     => response.uri,
+          :name   => response.name,
+          :artist => response.artists.first.name,
+          :album  => response.album.name,
+          :duration => response.duration_ms
     end
 
     # Finds a song in the database.

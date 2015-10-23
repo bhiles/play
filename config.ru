@@ -1,5 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/app/boot')
 require 'sprockets'
+require "sprockets-sass"
+require "sass"
 
 stylesheets = Sprockets::Environment.new
 stylesheets.append_path 'app/frontend/styles'

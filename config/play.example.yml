@@ -7,3 +7,10 @@ pusher_secret: __PUSHER_SECRET__
 auth_token: __AUTH_TOKEN__
 office_url: http://example.com/office.macs
 stream_url: http://example.com:8000/listen
+spotify_username: __SPOTIFY_USERNAME__
+spotify_playlist: __SPOTIFY_PLAYLIST__
+spotify_access_token: __SPOTIFY_ACCESS_TOKEN__
+spotify_refresh_token: __SPOTIFY_REFRESH_TOKEN__
+spotify_token: __SPOTIFY_TOKEN__
+spotify_client_id: __SPOTIFY_CLIENT_ID__
+spotify_client_secret: __SPOTIFY_CLIENT_SECRET__
