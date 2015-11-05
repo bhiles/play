@@ -27,8 +27,7 @@ module Play
     #
     # Returns an Appscript::Reference to the Playlist.
     def self.playlist
-      #Player.app.playlists[name].get
-      USER.playlists.first
+      USER.playlists.select{|p| p.name == "Disco"}.first
     end
 
     def self.tracks

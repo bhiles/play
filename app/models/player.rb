@@ -15,19 +15,16 @@ module Play
       app.playlists['Library'].get
     end
 
-    def self.spotify_playlist_url
-      ["https://open.spotify.com/user/",
-       Play.config.spotify_username,
-       "/playlist/",
-       Play.config.spotify_playlist].join("")
+    def self.spotify_playlist_uri
+      Queue.playlist.uri
     end
 
     # Play the music.
     def self.play
       if now_playing.nil?
-        app.play_track(spotify_playlist_url)
+        app.play_track(spotify_playlist_uri)
       elsif !Queue.queued?(now_playing)
-        app.play_track(spotify_playlist_url)
+        app.play_track(spotify_playlist_uri)
       else
         app.play
       end
