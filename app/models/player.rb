@@ -56,6 +56,7 @@ module Play
       else
         app.next_track
       end
+      sleep 1
       now_playing
     end
 
