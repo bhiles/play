@@ -50,7 +50,12 @@ module Play
     #
     # Returns the new song.
     def self.play_next
-      app.next_track
+      if Queue.queued?(now_playing)
+        Play::Queue.clear_up_to_next_track()
+        app.play_track(spotify_playlist_uri)
+      else
+        app.next_track
+      end
       now_playing
     end
 

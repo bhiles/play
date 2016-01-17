@@ -96,6 +96,10 @@ module Play
       playlist.remove_tracks!(playlist.tracks)
     end
 
+    def self.clear_up_to_next_track
+      playlist.remove_tracks!(playlist.tracks.slice(0, playlist_offset + 1))
+    end
+
     # Ensure that we're currently playing on the Play playlist. Don't let anyone
     # else use iTunes, because fuck 'em.
     #
