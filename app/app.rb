@@ -40,7 +40,7 @@ module Play
                             :client_id => Play.config.client_id,
                             :failure_app => Octobouncer,
                             :organization => Play.config.gh_org,
-                            :scopes => 'user,offline_access'
+                            :scopes => 'user:email'
                          }
 
     Pusher.app_id =  Play.config.pusher_app_id
