@@ -54,7 +54,7 @@ module Play
       else
         Play::Queue.playlist.tracks
           .map
-          .with_index{|t, i| i if t.name ==  Play::Player.now_playing.name }
+          .with_index{|t, i| i if t.id ==  Play::Player.now_playing.id.split(":")[2] }
           .select{|v| !v.nil?}
           .first
       end
