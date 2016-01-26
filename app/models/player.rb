@@ -33,6 +33,9 @@ module Play
     # Pause the music.
     def self.pause
       app.pause
+      # restart the app to pull in any updates
+      app.quit
+      app.activate
     end
 
     # Is there music currently playing?
